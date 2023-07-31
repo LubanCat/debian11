@@ -3,41 +3,133 @@
 # Directory contains the target rootfs
 TARGET_ROOTFS_DIR="binary"
 
-case "${ARCH:-$1}" in
-	arm|arm32|armhf)
-		ARCH=armhf
-		;;
-	*)
-		ARCH=arm64
-		;;
-esac
+if [ ! $SOC ]; then
+    echo "---------------------------------------------------------"
+    echo "please enter soc number:"
+    echo "请输入要构建CPU的序号:"
+    echo "[0] Exit Menu"
+    echo "[1] rk3566/rk3568"
+    echo "[2] rk3588/rk3588s"
+    echo "---------------------------------------------------------"
+    read input
 
-echo -e "\033[36m Building for $ARCH \033[0m"
-
-if [ ! $VERSION ]; then
-	VERSION="release"
+    case $input in
+        0)
+            exit;;
+        1)
+            SOC=rk356x
+            ;;
+        2)
+            SOC=rk3588
+            ;;
+        *)
+            echo 'input soc number error, exit !'
+            exit;;
+    esac
+    echo -e "\033[47;36m set SOC=$SOC...... \033[0m"
 fi
 
-echo -e "\033[36m Building for $VERSION \033[0m"
+if [ ! $TARGET ]; then
+    echo "---------------------------------------------------------"
+    echo "please enter desktop type number:"
+    echo "请输入要构建桌面的序号:"
+    echo "[0] Exit Menu"
+    echo "[1] xfce"
+    echo "[2] lxde"
+    echo "[3] gnome"
+    echo "[4] lite"
+    echo "---------------------------------------------------------"
+    read input
 
-if [ ! -e linaro-bullseye-alip-*.tar.gz ]; then
-	echo "\033[36m Run mk-base-debian.sh first \033[0m"
-	exit -1
+    case $input in
+        0)
+            exit;;
+        1)
+            TARGET=xfce
+            ;;
+        2)
+            TARGET=lxde
+            ;;
+        3)
+            TARGET=gnome
+            ;;
+        4)
+            TARGET=lite
+            ;;
+        *)
+            echo 'input desktop type error, exit !'
+            exit;;
+    esac
+fi
+
+install_packages() {
+    case $SOC in
+        rk3399|rk3399pro)
+        MALI=midgard-t86x-r18p0
+        ISP=rkisp
+        ;;
+        rk3328|rk3528)
+        MALI=utgard-450
+        ISP=rkisp
+        ;;
+        rk3562)
+        MALI=bifrost-g52-g13p0
+        ISP=rkaiq_rk3562
+        ;;
+        rk356x|rk3566|rk3568)
+        MALI=bifrost-g52-g13p0
+        ISP=rkaiq_rk3568
+        MIRROR=carp-rk356x
+        ;;
+        rk3588|rk3588s)
+        ISP=rkaiq_rk3588
+        MALI=valhall-g610-g13p0
+        MIRROR=carp-rk356x
+        ;;
+    esac
+}
+
+case "${ARCH:-$1}" in
+    arm|arm32|armhf)
+        ARCH=armhf
+        ;;
+    *)
+        ARCH=arm64
+        ;;
+esac
+
+echo -e "\033[47;36m Building for $ARCH \033[0m"
+
+if [ ! $VERSION ]; then
+    VERSION="release"
+fi
+
+echo -e "\033[47;36m Building for $VERSION \033[0m"
+
+if [ ! -e linaro-bullseye-$TARGET-alip-*.tar.gz ]; then
+    echo "\033[41;36m Run mk-base-debian.sh first \033[0m"
+    exit -1
 fi
 
 finish() {
-	sudo umount $TARGET_ROOTFS_DIR/dev
-	exit -1
+    sudo umount $TARGET_ROOTFS_DIR/dev
+    exit -1
 }
 trap finish ERR
 
-echo -e "\033[36m Extract image \033[0m"
-sudo tar -xpf linaro-bullseye-alip-*.tar.gz
+echo -e "\033[47;36m Extract image \033[0m"
+sudo rm -rf $TARGET_ROOTFS_DIR
+sudo tar -xpf linaro-bullseye-$TARGET-alip-*.tar.gz
 
 # packages folder
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages
 sudo cp -rpf packages/$ARCH/* $TARGET_ROOTFS_DIR/packages
 
+#GPU/CAMERA packages folder
+install_packages
+sudo mkdir -p $TARGET_ROOTFS_DIR/packages/install_packages
+sudo cp -rpf packages/$ARCH/libmali/libmali-*$MALI*-x11*.deb $TARGET_ROOTFS_DIR/packages/install_packages
+sudo cp -rpf packages/$ARCH/${ISP:0:5}/camera_engine_$ISP*.deb $TARGET_ROOTFS_DIR/packages/install_packages
 # overlay folder
 sudo cp -rpf overlay/* $TARGET_ROOTFS_DIR/
 
@@ -47,21 +139,14 @@ sudo cp -rpf overlay-firmware/* $TARGET_ROOTFS_DIR/
 # overlay-debug folder
 # adb, video, camera  test file
 if [ "$VERSION" == "debug" ]; then
-	sudo cp -rpf overlay-debug/* $TARGET_ROOTFS_DIR/
+    sudo cp -rpf overlay-debug/* $TARGET_ROOTFS_DIR/
 fi
-
-# bt/wifi firmware
-sudo mkdir -p $TARGET_ROOTFS_DIR/system/lib/modules/
-sudo mkdir -p $TARGET_ROOTFS_DIR/vendor/etc
-
-sudo find ../kernel/drivers/net/wireless/rockchip_wlan/*  -name "*.ko" | \
-    xargs -n1 -i sudo cp {} $TARGET_ROOTFS_DIR/system/lib/modules/
 
 echo -e "\033[36m Change root.....................\033[0m"
 if [ "$ARCH" == "armhf" ]; then
-	sudo cp /usr/bin/qemu-arm-static $TARGET_ROOTFS_DIR/usr/bin/
+    sudo cp /usr/bin/qemu-arm-static $TARGET_ROOTFS_DIR/usr/bin/
 elif [ "$ARCH" == "arm64"  ]; then
-	sudo cp /usr/bin/qemu-aarch64-static $TARGET_ROOTFS_DIR/usr/bin/
+    sudo cp /usr/bin/qemu-aarch64-static $TARGET_ROOTFS_DIR/usr/bin/
 fi
 
 sudo cp -f /etc/resolv.conf $TARGET_ROOTFS_DIR/etc/
@@ -74,14 +159,21 @@ cat << EOF | sudo chroot $TARGET_ROOTFS_DIR
 
 # Fixup owners
 if [ "$ID" -ne 0 ]; then
-       find / -user $ID -exec chown -h 0:0 {} \;
+    find / -user $ID -exec chown -h 0:0 {} \;
 fi
 for u in \$(ls /home/); do
-	chown -h -R \$u:\$u /home/\$u
+    chown -h -R \$u:\$u /home/\$u
 done
 
 echo "deb http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
 echo "deb-src http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
+
+if [ $MIRROR ]; then
+    echo "deb [arch=arm64] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | sudo tee -a /etc/apt/sources.list
+    curl https://Embedfire.github.io/keyfile | sudo apt-key add -
+fi
+
+export LC_ALL=C.UTF-8
 
 apt-get update
 apt-get upgrade -y
@@ -91,8 +183,7 @@ chmod +x /etc/rc.local
 
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
 
-# enter root username without password
-sed -i "s~\(^ExecStart=.*\)~# \1\nExecStart=-/bin/sh -c '/bin/bash -l </dev/%I >/dev/%I 2>\&1'~" /usr/lib/systemd/system/serial-getty@.service
+apt install -fy --allow-downgrades /packages/install_packages/*.deb
 
 #---------------power management --------------
 \${APT_INSTALL} pm-utils triggerhappy bsdmainutils
@@ -202,16 +293,6 @@ source ~/.bashrc
 # HACK to disable the kernel logo on bootup
 #sed -i "/exit 0/i \ echo 3 > /sys/class/graphics/fb0/blank" /etc/rc.local
 
-cp /packages/libmali/libmali-*-x11*.deb /
-cp -rf /packages/rkisp/*.deb /
-cp -rf /packages/rkaiq/*.deb /
-cp -rf /usr/lib/firmware/rockchip/ /
-
-# reduce 500M size for rootfs
-rm -rf /usr/lib/firmware
-mkdir -p /usr/lib/firmware/
-mv /rockchip /usr/lib/firmware/
-
 # mark package to hold
 apt list --installed | grep -v oldstable | cut -d/ -f1 | xargs apt-mark hold
 
@@ -226,28 +307,31 @@ apt remove --purge -fy linux-firmware*
 #---------------Clean--------------
 if [ -e "/usr/lib/arm-linux-gnueabihf/dri" ] ;
 then
-        # Only preload libdrm-cursor for X
-        sed -i "1aexport LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libdrm-cursor.so.1" /usr/bin/X
-        cd /usr/lib/arm-linux-gnueabihf/dri/
-        cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
-        rm /usr/lib/arm-linux-gnueabihf/dri/*.so
-        mv /*.so /usr/lib/arm-linux-gnueabihf/dri/
+    # Only preload libdrm-cursor for X
+    sed -i "1aexport LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libdrm-cursor.so.1" /usr/bin/X
+    cd /usr/lib/arm-linux-gnueabihf/dri/
+    cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
+    rm /usr/lib/arm-linux-gnueabihf/dri/*.so
+    mv /*.so /usr/lib/arm-linux-gnueabihf/dri/
 elif [ -e "/usr/lib/aarch64-linux-gnu/dri" ];
 then
-        # Only preload libdrm-cursor for X
-        sed -i "1aexport LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libdrm-cursor.so.1" /usr/bin/X
-        cd /usr/lib/aarch64-linux-gnu/dri/
-        cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
-        rm /usr/lib/aarch64-linux-gnu/dri/*.so
-        mv /*.so /usr/lib/aarch64-linux-gnu/dri/
-        rm /etc/profile.d/qt.sh
+    # Only preload libdrm-cursor for X
+    sed -i "1aexport LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libdrm-cursor.so.1" /usr/bin/X
+    cd /usr/lib/aarch64-linux-gnu/dri/
+    cp kms_swrast_dri.so swrast_dri.so rockchip_dri.so /
+    rm /usr/lib/aarch64-linux-gnu/dri/*.so
+    mv /*.so /usr/lib/aarch64-linux-gnu/dri/
+    rm /etc/profile.d/qt.sh
 fi
-cd -
 
+# rm -rf /home/$(whoami)
 rm -rf /var/lib/apt/lists/*
 rm -rf /var/cache/
 rm -rf /packages/
+rm -rf /sha256sum*
 
 EOF
 
 sudo umount $TARGET_ROOTFS_DIR/dev
+
+IMAGE_VERSION=$TARGET ./mk-image.sh 
