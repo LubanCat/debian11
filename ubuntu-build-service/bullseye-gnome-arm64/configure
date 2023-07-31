@@ -33,6 +33,8 @@ lb config \
  --compression gzip \
  --debootstrap-options "--variant=minbase --include=apt-transport-https,gnupg" \
  --distribution bullseye \
+ --firmware-binary false \
+ --firmware-chroot false \
  --gzip-options '-9 --rsyncable' \
  --iso-publisher 'Linaro; http://www.linaro.org/; linaro-dev@lists.linaro.org' \
  --iso-volume 'Linaro Bullseye $(date +%Y%m%d-%H:%M)' \
