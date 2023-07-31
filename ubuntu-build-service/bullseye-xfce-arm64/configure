@@ -24,7 +24,7 @@ lb config \
  --backports false \
  --binary-filesystem ext4 \
  --binary-images tar \
- --bootappend-live "hostname=linaro-alip username=linaro" \
+ --bootappend-live "hostname=lubancat username=cat" \
  --bootloader "syslinux" \
  --bootstrap-qemu-arch arm64 \
  --bootstrap-qemu-static /usr/bin/qemu-aarch64-static \

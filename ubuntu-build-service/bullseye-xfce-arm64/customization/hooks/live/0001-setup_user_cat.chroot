@@ -1,0 +1,7 @@
+#!/bin/sh  
+
+echo "I: create cat user"
+adduser --gecos cat --disabled-login cat
+
+echo "I: set cat user password"
+echo "cat:temppwd" | chpasswd

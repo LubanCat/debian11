@@ -14,5 +14,5 @@ for group in $DEFGROUPS; do
 done
 unset IFS
 
-echo "I: add linaro to ($DEFGROUPS) groups"
-usermod -a -G ${DEFGROUPS} linaro
+echo "I: add cat to ($DEFGROUPS) groups"
+usermod -a -G ${DEFGROUPS} cat
