@@ -53,12 +53,19 @@ else
 	echo -e "\033[47;36m set default ARCH=arm64...... \033[0m"
 fi
 
+if [ "$TARGET" == "lite" ]; then
+	BUILD_VERSION='base'
+	echo -e "\033[47;36m set TARGET=lite, use $RELEASE-base-$ARCH to build ...... \033[0m"
+else
+	BUILD_VERSION=$TARGET
+fi
+
 if [ -e linaro-$RELEASE-$TARGET-alip-*.tar.gz ]; then
 	rm linaro-$RELEASE-$TARGET-alip-*.tar.gz
 fi
 
 
-cd ubuntu-build-service/$RELEASE-$TARGET-$ARCH
+cd ubuntu-build-service/$RELEASE-$BUILD_VERSION-$ARCH
 
 echo -e "\033[47;36m Staring Download...... \033[0m"
 
