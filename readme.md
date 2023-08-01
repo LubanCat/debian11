@@ -1,11 +1,17 @@
-## Introduction
+## 简介
 
 A set of shell scripts that will build GNU/Linux distribution rootfs image
 for rockchip platform.
 
-## Available Distro
+## 适用板卡
 
-* Debian 11 (Bullseye-X11 and Wayland)~~
+- 使用RK3566处理器的LubanCat板卡
+- 使用RK3568处理器的LubanCat板卡
+- 使用RK3588处理器的LubanCat板卡
+
+## 安装依赖
+
+构建主机环境最低要求Ubuntu20.04及以上版本，推荐使用Ubuntu20.04
 
 ```
 sudo apt-get install binfmt-support qemu-user-static
@@ -13,77 +19,30 @@ sudo dpkg -i ubuntu-build-service/packages/*
 sudo apt-get install -f
 ```
 
-## Usage for 32bit Debian 11 (Bullseye-32)
+## 构建 Debian11 镜像（仅支持64bit）
 
-### Building debian system from linaro
+- lite：控制台版，无桌面
+- xfce：桌面版，使用xfce4桌面套件
+- lxde：桌面版，使用lxde桌面套件
+- gnome：桌面版，使用gnome桌面套件
 
-Building a base debian system by ubuntu-build-service from linaro.
 
-```
-	RELEASE=bullseye TARGET=base ARCH=armhf ./mk-base-debian.sh
-```
-
-Building a desktop debian system by ubuntu-build-service from linaro.
+#### step1.构建基础 Debian 系统。
 
 ```
-	RELEASE=bullseye TARGET=desktop ARCH=armhf ./mk-base-debian.sh
+# 运行以下脚本，根据提示选择要构建的版本
+./mk-base-debian.sh
 ```
-
-### Building overlay with rockchip audio/video hardware accelerated
-
-- Building with overlay with rockchip debian rootfs:
+#### step2.添加 rk overlay 层,并打包linaro-rootfs镜像
 
 ```
-	RELEASE=bullseye ARCH=armhf ./mk-rootfs.sh
-```
+# 根据提示选择要构建桌面版本和SOC版本
 
-- Building with overlay with rockchip debug debian rootfs:
-
-```
-	VERSION=debug ARCH=armhf ./mk-rootfs-bullseye.sh
-```
-
-### Creating roofs image
-
-Creating the ext4 image(linaro-rootfs.img):
+VERSION=debug ./mk-bullseye-rootfs.sh
 
 ```
-	./mk-image.sh
-```
 
----
 
-## Usage for 64bit Debian 11 (Bullseye-64)
-
-### Building debian system from linaro
-
-Building a base debian system by ubuntu-build-service from linaro.
-
-```
-	RELEASE=bullseye TARGET=desktop ARCH=arm64 ./mk-base-debian.sh
-```
-
-### Building overlay with rockchip audio/video hardware accelerated
-
-- Building the rk-debian rootfs
-
-```
-	RELEASE=bullseye ARCH=arm64 ./mk-rootfs.sh
-```
-
-- Building the rk-debain rootfs with debug
-
-```
-	VERSION=debug ARCH=arm64 ./mk-rootfs-bullseye.sh
-```
-
-### Creating roofs image
-
-Creating the ext4 image(linaro-rootfs.img):
-
-```
-	./mk-image.sh
-```
 ---
 
 ## Cross Compile for ARM Debian
