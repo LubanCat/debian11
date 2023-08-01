@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 TARGET_ROOTFS_DIR=./binary
-ROOTFSIMAGE=linaro-rootfs.img
-EXTRA_SIZE_MB=300
+ROOTFSIMAGE=linaro-$IMAGE_VERSION-rootfs.img
+EXTRA_SIZE_MB=100
 IMAGE_SIZE_MB=$(( $(sudo du -sh -m ${TARGET_ROOTFS_DIR} | cut -f1) + ${EXTRA_SIZE_MB} ))
 
 
