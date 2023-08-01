@@ -1,0 +1,6 @@
+Debian GNU/Linux 11 \n \l
+
+[username:password] root:root cat:temppwd
+
+Modify information : /etc/issue
+
