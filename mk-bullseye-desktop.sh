@@ -31,8 +31,8 @@ fi
 
 if [ ! $TARGET ]; then
     echo "---------------------------------------------------------"
-    echo "please enter desktop type number:"
-    echo "请输入要构建桌面的序号:"
+    echo "please enter TARGET version number:"
+    echo "请输入要构建的根文件系统版本:"
     echo "[0] Exit Menu"
     echo "[1] xfce"
     echo "[2] lxde"
@@ -57,9 +57,10 @@ if [ ! $TARGET ]; then
             TARGET=lite
             ;;
         *)
-            echo 'input desktop type error, exit !'
+            echo -e "\033[47;36m input TARGET version number error, exit ! \033[0m"
             exit;;
     esac
+    echo -e "\033[47;36m set TARGET=$TARGET...... \033[0m"
 fi
 
 install_packages() {
@@ -202,9 +203,22 @@ systemctl disable apt-daily-upgrade.service
 
 # set localtime
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-
-#desktop-background
-ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png /usr/share/images/desktop-base/default
+if [[ "$TARGET" == "gnome" ]]; then
+    \${APT_INSTALL} fire-config-gui
+    #Desktop background picture
+    ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png /usr/share/images/desktop-base/default
+elif [[ "$TARGET" == "xfce" ]]; then
+    \${APT_INSTALL} fire-config-gui
+    #Desktop background picture
+    chown -hR cat:cat /home/cat/.config
+    ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png /etc/alternatives/desktop-background
+elif [[ "$TARGET" == "lxde" ]]; then
+    \${APT_INSTALL} fire-config-gui
+    #Desktop background picture
+    # ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png 
+elif [ "$TARGET" == "lite" ]; then
+    \${APT_INSTALL} bluez bluez-tools
+fi
 
 apt install -fy --allow-downgrades /packages/install_packages/*.deb
 
@@ -215,53 +229,64 @@ cp /etc/Powermanager/triggerhappy.service  /lib/systemd/system/triggerhappy.serv
 echo -e "\033[47;36m ----------- RGA  ----------- \033[0m"
 \${APT_INSTALL} /packages/rga2/*.deb
 
-echo -e "\033[47;36m ------ Setup Video---------- \033[0m"
-\${APT_INSTALL} gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-tools gstreamer1.0-alsa \
-gstreamer1.0-plugins-base-apps qtmultimedia5-examples
 
-\${APT_INSTALL} /packages/mpp/*
-\${APT_INSTALL} /packages/gst-rkmpp/*.deb
-\${APT_INSTALL} /packages/gstreamer/*.deb
-\${APT_INSTALL} /packages/gst-plugins-base1.0/*.deb
-\${APT_INSTALL} /packages/gst-plugins-bad1.0/*.deb
-\${APT_INSTALL} /packages/gst-plugins-good1.0/*.deb
-\${APT_INSTALL} /packages/gst-plugins-ugly1.0/*.deb
-\${APT_INSTALL} /packages/gst-libav1.0/*.deb
+if [[ "$TARGET" == "gnome" || "$TARGET" == "xfce" || "$TARGET" == "lxde" ]]; then
+    echo -e "\033[47;36m ------ Setup Video---------- \033[0m"
+    \${APT_INSTALL} gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-tools gstreamer1.0-alsa \
+    gstreamer1.0-plugins-base-apps qtmultimedia5-examples
 
-echo -e "\033[47;36m ----- Install Camera ----- - \033[0m"
-\${APT_INSTALL} cheese v4l-utils
-\${APT_INSTALL} /packages/libv4l/*.deb
-\${APT_INSTALL} /packages/cheese/*.deb
+    \${APT_INSTALL} /packages/mpp/*
+    \${APT_INSTALL} /packages/gst-rkmpp/*.deb
+    \${APT_INSTALL} /packages/gstreamer/*.deb
+    \${APT_INSTALL} /packages/gst-plugins-base1.0/*.deb
+    \${APT_INSTALL} /packages/gst-plugins-bad1.0/*.deb
+    \${APT_INSTALL} /packages/gst-plugins-good1.0/*.deb
+    \${APT_INSTALL} /packages/gst-plugins-ugly1.0/*.deb
+    \${APT_INSTALL} /packages/gst-libav1.0/*.deb
+elif [ "$TARGET" == "lite" ]; then
+    echo -e "\033[47;36m ------ Setup Video---------- \033[0m"
+    \${APT_INSTALL} /packages/mpp/*
+    \${APT_INSTALL} /packages/gst-rkmpp/*.deb
+fi
 
-echo -e "\033[47;36m ----- Install Xserver------- \033[0m"
-\${APT_INSTALL} /packages/xserver/*.deb
+if [[ "$TARGET" == "gnome" || "$TARGET" == "xfce" || "$TARGET" == "lxde" ]]; then
+    echo -e "\033[47;36m ----- Install Camera ----- - \033[0m"
+    \${APT_INSTALL} cheese v4l-utils
+    \${APT_INSTALL} /packages/libv4l/*.deb
+    \${APT_INSTALL} /packages/cheese/*.deb
 
-apt-mark hold xserver-common xserver-xorg-core xserver-xorg-legacy
+    echo -e "\033[47;36m ----- Install Xserver------- \033[0m"
+    \${APT_INSTALL} /packages/xserver/*.deb
 
-echo -e "\033[47;36m ------ Install openbox ----- \033[0m"
-\${APT_INSTALL} /packages/openbox/*.deb
+    apt-mark hold xserver-common xserver-xorg-core xserver-xorg-legacy
 
-echo -e "\033[47;36m ------ update chromium ----- \033[0m"
-\${APT_INSTALL} /packages/chromium/*.deb
+    echo -e "\033[47;36m ------ Install openbox ----- \033[0m"
+    \${APT_INSTALL} /packages/openbox/*.deb
+
+    echo -e "\033[47;36m ------ update chromium ----- \033[0m"
+    \${APT_INSTALL} /packages/chromium/*.deb
+fi
 
 echo -e "\033[47;36m ------- Install libdrm ------ \033[0m"
 \${APT_INSTALL} /packages/libdrm/*.deb
 
-echo -e "\033[47;36m ------ libdrm-cursor -------- \033[0m"
-\${APT_INSTALL} /packages/libdrm-cursor/*.deb
+if [[ "$TARGET" == "gnome" || "$TARGET" == "xfce" || "$TARGET" == "lxde" ]]; then
+    echo -e "\033[47;36m ------ libdrm-cursor -------- \033[0m"
+    \${APT_INSTALL} /packages/libdrm-cursor/*.deb
 
-echo -e "\033[47;36m --------  blueman  ---------- \033[0m"
-\${APT_INSTALL} blueman
-echo exit 101 > /usr/sbin/policy-rc.d
-chmod +x /usr/sbin/policy-rc.d
-\${APT_INSTALL} blueman
-rm -f /usr/sbin/policy-rc.d
+    echo -e "\033[47;36m --------  blueman  ---------- \033[0m"
+    \${APT_INSTALL} blueman
+    echo exit 101 > /usr/sbin/policy-rc.d
+    chmod +x /usr/sbin/policy-rc.d
+    \${APT_INSTALL} blueman
+    rm -f /usr/sbin/policy-rc.d
 
-\${APT_INSTALL} /packages/blueman/*.deb
+    \${APT_INSTALL} /packages/blueman/*.deb
 
-if [ "$VERSION" == "debug" ]; then
-echo -e "\033[47;36m ------ Install glmark2 ------ \033[0m"
-\${APT_INSTALL} /packages/glmark2/*.deb
+    if [ "$VERSION" == "debug" ]; then
+    echo -e "\033[47;36m ------ Install glmark2 ------ \033[0m"
+    \${APT_INSTALL} /packages/glmark2/*.deb
+    fi
 fi
 
 if [ -e "/usr/lib/aarch64-linux-gnu" ] ;
@@ -273,20 +298,25 @@ fi
 echo -e "\033[47;36m ----- Install rktoolkit ----- \033[0m"
 \${APT_INSTALL} /packages/rktoolkit/*.deb
 
-echo -e "\033[47;36m Install Chinese fonts.................... \033[0m"
-# Uncomment zh_CN.UTF-8 for inclusion in generation
-sed -i 's/^# *\(zh_CN.UTF-8\)/\1/' /etc/locale.gen
-echo "LANG=zh_CN.UTF-8" >> /etc/default/locale
+if [[ "$TARGET" == "gnome" || "$TARGET" == "xfce" || "$TARGET" == "lxde" ]]; then
+    # set default xinput for fcitx
+    sed -i 's/default/fcitx/g' /etc/X11/xinit/xinputrc
 
-# Generate locale
-locale-gen
+    echo -e "\033[47;36m Install Chinese fonts.................... \033[0m"
+    # Uncomment zh_CN.UTF-8 for inclusion in generation
+    sed -i 's/^# *\(zh_CN.UTF-8\)/\1/' /etc/locale.gen
+    echo "LANG=zh_CN.UTF-8" >> /etc/default/locale
 
-# Export env vars
-echo "export LC_ALL=zh_CN.UTF-8" >> ~/.bashrc
-echo "export LANG=zh_CN.UTF-8" >> ~/.bashrc
-echo "export LANGUAGE=zh_CN.UTF-8" >> ~/.bashrc
+    # Generate locale
+    locale-gen
 
-source ~/.bashrc
+    # Export env vars
+    echo "export LC_ALL=zh_CN.UTF-8" >> ~/.bashrc
+    echo "export LANG=zh_CN.UTF-8" >> ~/.bashrc
+    echo "export LANGUAGE=zh_CN.UTF-8" >> ~/.bashrc
+
+    source ~/.bashrc
+fi
 
 \${APT_INSTALL} ttf-wqy-zenhei fonts-aenigma
 \${APT_INSTALL} xfonts-intl-chinese
