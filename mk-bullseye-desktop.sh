@@ -142,7 +142,7 @@ if [ "$VERSION" == "debug" ]; then
     sudo cp -rpf overlay-debug/* $TARGET_ROOTFS_DIR/
 fi
 
-echo -e "\033[36m Change root.....................\033[0m"
+echo -e "\033[47;36m Change root.....................\033[0m"
 if [ "$ARCH" == "armhf" ]; then
     sudo cp /usr/bin/qemu-arm-static $TARGET_ROOTFS_DIR/usr/bin/
 elif [ "$ARCH" == "arm64"  ]; then
@@ -183,16 +183,39 @@ chmod +x /etc/rc.local
 
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
 
+echo -e "\033[47;36m ---------- LubanCat -------- \033[0m"
+\${APT_INSTALL} toilet mpv fire-config u-boot-tools
+
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple setuptools wheel
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple python-periphery Adafruit-Blinka
+
+passwd root <<IEOF
+root
+root
+IEOF
+
+systemctl disable apt-daily.service
+systemctl disable apt-daily.timer
+
+systemctl disable apt-daily-upgrade.timer
+systemctl disable apt-daily-upgrade.service
+
+# set localtime
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+#desktop-background
+ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png /usr/share/images/desktop-base/default
+
 apt install -fy --allow-downgrades /packages/install_packages/*.deb
 
-#---------------power management --------------
+echo -e "\033[47;36m ----- power management ----- \033[0m"
 \${APT_INSTALL} pm-utils triggerhappy bsdmainutils
 cp /etc/Powermanager/triggerhappy.service  /lib/systemd/system/triggerhappy.service
 
-#---------------Rga--------------
+echo -e "\033[47;36m ----------- RGA  ----------- \033[0m"
 \${APT_INSTALL} /packages/rga2/*.deb
 
-echo -e "\033[36m Setup Video.................... \033[0m"
+echo -e "\033[47;36m ------ Setup Video---------- \033[0m"
 \${APT_INSTALL} gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-tools gstreamer1.0-alsa \
 gstreamer1.0-plugins-base-apps qtmultimedia5-examples
 
@@ -205,68 +228,52 @@ gstreamer1.0-plugins-base-apps qtmultimedia5-examples
 \${APT_INSTALL} /packages/gst-plugins-ugly1.0/*.deb
 \${APT_INSTALL} /packages/gst-libav1.0/*.deb
 
-#---------Camera---------
-echo -e "\033[36m Install camera.................... \033[0m"
+echo -e "\033[47;36m ----- Install Camera ----- - \033[0m"
 \${APT_INSTALL} cheese v4l-utils
 \${APT_INSTALL} /packages/libv4l/*.deb
 \${APT_INSTALL} /packages/cheese/*.deb
 
-#---------Xserver---------
-echo -e "\033[36m Install Xserver.................... \033[0m"
+echo -e "\033[47;36m ----- Install Xserver------- \033[0m"
 \${APT_INSTALL} /packages/xserver/*.deb
 
 apt-mark hold xserver-common xserver-xorg-core xserver-xorg-legacy
 
-#---------------Openbox--------------
-echo -e "\033[36m Install openbox.................... \033[0m"
+echo -e "\033[47;36m ------ Install openbox ----- \033[0m"
 \${APT_INSTALL} /packages/openbox/*.deb
 
-#---------update chromium-----
+echo -e "\033[47;36m ------ update chromium ----- \033[0m"
 \${APT_INSTALL} /packages/chromium/*.deb
 
-#------------------libdrm------------
-echo -e "\033[36m Install libdrm.................... \033[0m"
+echo -e "\033[47;36m ------- Install libdrm ------ \033[0m"
 \${APT_INSTALL} /packages/libdrm/*.deb
 
-#------------------libdrm-cursor------------
-echo -e "\033[36m Install libdrm-cursor.................... \033[0m"
+echo -e "\033[47;36m ------ libdrm-cursor -------- \033[0m"
 \${APT_INSTALL} /packages/libdrm-cursor/*.deb
 
-#------------------blueman------------
-echo -e "\033[36m Install blueman.................... \033[0m"
+echo -e "\033[47;36m --------  blueman  ---------- \033[0m"
 \${APT_INSTALL} blueman
 echo exit 101 > /usr/sbin/policy-rc.d
 chmod +x /usr/sbin/policy-rc.d
 \${APT_INSTALL} blueman
 rm -f /usr/sbin/policy-rc.d
 
-#------------------blueman------------
-echo -e "\033[36m Install blueman.................... \033[0m"
 \${APT_INSTALL} /packages/blueman/*.deb
 
-#------------------rkwifibt------------
-echo -e "\033[36m Install rkwifibt.................... \033[0m"
-\${APT_INSTALL} /packages/rkwifibt/*.deb
-ln -s /system/etc/firmware /vendor/etc/
-
 if [ "$VERSION" == "debug" ]; then
-#------------------glmark2------------
-echo -e "\033[36m Install glmark2.................... \033[0m"
+echo -e "\033[47;36m ------ Install glmark2 ------ \033[0m"
 \${APT_INSTALL} /packages/glmark2/*.deb
 fi
 
 if [ -e "/usr/lib/aarch64-linux-gnu" ] ;
 then
-#------------------rknpu2------------
-echo -e "\033[36m move rknpu2.................... \033[0m"
+echo -e "\033[47;36m ------- move rknpu2 --------- \033[0m"
 mv /packages/rknpu2/*.tar  /
 fi
 
-#------------------rktoolkit------------
-echo -e "\033[36m Install rktoolkit.................... \033[0m"
+echo -e "\033[47;36m ----- Install rktoolkit ----- \033[0m"
 \${APT_INSTALL} /packages/rktoolkit/*.deb
 
-echo -e "\033[36m Install Chinese fonts.................... \033[0m"
+echo -e "\033[47;36m Install Chinese fonts.................... \033[0m"
 # Uncomment zh_CN.UTF-8 for inclusion in generation
 sed -i 's/^# *\(zh_CN.UTF-8\)/\1/' /etc/locale.gen
 echo "LANG=zh_CN.UTF-8" >> /etc/default/locale
@@ -286,9 +293,6 @@ source ~/.bashrc
 
 # HACK debian11.3 to fix bug
 \${APT_INSTALL} fontconfig --reinstall
-
-#\${APT_INSTALL} xfce4
-#ln -sf /usr/bin/startxfce4 /etc/alternatives/x-session-manager
 
 # HACK to disable the kernel logo on bootup
 #sed -i "/exit 0/i \ echo 3 > /sys/class/graphics/fb0/blank" /etc/rc.local
@@ -324,7 +328,7 @@ then
     rm /etc/profile.d/qt.sh
 fi
 
-# rm -rf /home/$(whoami)
+rm -rf /home/$(whoami)
 rm -rf /var/lib/apt/lists/*
 rm -rf /var/cache/
 rm -rf /packages/
