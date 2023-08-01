@@ -249,16 +249,23 @@ elif [ "$TARGET" == "lite" ]; then
     \${APT_INSTALL} /packages/gst-rkmpp/*.deb
 fi
 
+if [[ "$TARGET" == "gnome" ]]; then
+    echo -e "\033[47;36m ----- Install Xserver------- \033[0m"
+    \${APT_INSTALL} /packages/xserver/xserver-xorg-*.deb
+
+    apt-mark hold xserver-xorg-core xserver-xorg-legacy
+elif [[ "$TARGET" == "xfce" || "$TARGET" == "lxde" ]]; then
+    echo -e "\033[47;36m ----- Install Xserver------- \033[0m"
+    \${APT_INSTALL} /packages/xserver/*.deb
+
+    apt-mark hold xserver-common xserver-xorg-core xserver-xorg-legacy
+fi
+
 if [[ "$TARGET" == "gnome" || "$TARGET" == "xfce" || "$TARGET" == "lxde" ]]; then
     echo -e "\033[47;36m ----- Install Camera ----- - \033[0m"
     \${APT_INSTALL} cheese v4l-utils
     \${APT_INSTALL} /packages/libv4l/*.deb
     \${APT_INSTALL} /packages/cheese/*.deb
-
-    echo -e "\033[47;36m ----- Install Xserver------- \033[0m"
-    \${APT_INSTALL} /packages/xserver/*.deb
-
-    apt-mark hold xserver-common xserver-xorg-core xserver-xorg-legacy
 
     echo -e "\033[47;36m ------ Install openbox ----- \033[0m"
     \${APT_INSTALL} /packages/openbox/*.deb
