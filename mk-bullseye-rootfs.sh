@@ -206,7 +206,7 @@ ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 if [[ "$TARGET" == "gnome" ]]; then
     \${APT_INSTALL} fire-config-gui
     #Desktop background picture
-    ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png /usr/share/images/desktop-base/default
+    # ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png /etc/alternatives/desktop-background
 elif [[ "$TARGET" == "xfce" ]]; then
     \${APT_INSTALL} fire-config-gui
     #Desktop background picture
@@ -215,7 +215,7 @@ elif [[ "$TARGET" == "xfce" ]]; then
 elif [[ "$TARGET" == "lxde" ]]; then
     \${APT_INSTALL} fire-config-gui
     #Desktop background picture
-    # ln -sf /usr/share/images/desktop-base/lubancat-wallpaper.png 
+    # ln -sf /usr/share/desktop-base/images/lubancat-wallpaper.png 
 elif [ "$TARGET" == "lite" ]; then
     \${APT_INSTALL} bluez bluez-tools
 fi
