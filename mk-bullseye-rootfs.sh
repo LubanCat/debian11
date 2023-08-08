@@ -85,7 +85,7 @@ install_packages() {
         rk3588|rk3588s)
         ISP=rkaiq_rk3588
         MALI=valhall-g610-g13p0
-        MIRROR=carp-rk356x
+        MIRROR=carp-rk3588
         ;;
     esac
 }
@@ -170,8 +170,11 @@ echo "deb http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib non
 echo "deb-src http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
 
 if [ $MIRROR ]; then
-    echo "deb [arch=arm64] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | sudo tee -a /etc/apt/sources.list
-    curl https://Embedfire.github.io/keyfile | sudo apt-key add -
+	mkdir -p /etc/apt/keyrings
+	curl -fsSL https://Embedfire.github.io/keyfile | gpg --dearmor -o /etc/apt/keyrings/embedfire.gpg
+	chmod a+r /etc/apt/keyrings/embedfire.gpg
+	echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian carp-lbc main" | tee /etc/apt/sources.list.d/embedfire-lbc.list > /dev/null
+	echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | tee /etc/apt/sources.list.d/embedfire-$MIRROR.list > /dev/null
 fi
 
 export LC_ALL=C.UTF-8
