@@ -131,6 +131,7 @@ install_packages
 sudo mkdir -p $TARGET_ROOTFS_DIR/packages/install_packages
 sudo cp -rpf packages/$ARCH/libmali/libmali-*$MALI*-x11*.deb $TARGET_ROOTFS_DIR/packages/install_packages
 sudo cp -rpf packages/$ARCH/${ISP:0:5}/camera_engine_$ISP*.deb $TARGET_ROOTFS_DIR/packages/install_packages
+
 # overlay folder
 sudo cp -rpf overlay/* $TARGET_ROOTFS_DIR/
 
@@ -150,8 +151,6 @@ elif [ "$ARCH" == "arm64"  ]; then
     sudo cp /usr/bin/qemu-aarch64-static $TARGET_ROOTFS_DIR/usr/bin/
 fi
 
-sudo cp -f /etc/resolv.conf $TARGET_ROOTFS_DIR/etc/
-
 sudo mount -o bind /dev $TARGET_ROOTFS_DIR/dev
 
 ID=$(stat --format %u $TARGET_ROOTFS_DIR)
@@ -165,6 +164,8 @@ fi
 for u in \$(ls /home/); do
     chown -h -R \$u:\$u /home/\$u
 done
+
+ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
 
 echo "deb http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
 echo "deb-src http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
