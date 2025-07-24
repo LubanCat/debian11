@@ -161,8 +161,8 @@ done
 
 ln -sf /run/resolvconf/resolv.conf /etc/resolv.conf
 
-echo "deb http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib" >> /etc/apt/sources.list
-echo "deb-src http://mirrors.ustc.edu.cn/debian/ bullseye-backports main contrib" >> /etc/apt/sources.list
+# echo "deb https://mirrors.aliyun.com/debian-archive/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
+# echo "deb-src https://mirrors.aliyun.com/debian-archive/debian/ bullseye-backports main contrib non-free" >> /etc/apt/sources.list
 
 # Add embedfire packages source
 mkdir -p /etc/apt/keyrings
