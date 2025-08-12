@@ -81,4 +81,8 @@ if [ -e linaro-$RELEASE-alip-*.tar.gz ]; then
 	mv linaro-$RELEASE-alip-*.tar.gz ../../linaro-$RELEASE-$TARGET-alip-$DATE.tar.gz
 else
 	echo -e "\e[41;31m Failed to run livebuild, please check your network connection. \e[0m"
+	exit
 fi
+
+echo -e "\033[47;36m Clean ...... \033[0m"
+make clean
