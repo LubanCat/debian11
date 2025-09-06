@@ -29,6 +29,7 @@ mawk
 mutrace
 netbase
 netcat-openbsd
+ntp
 ntpdate
 openssh-client
 openssh-server
