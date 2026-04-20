@@ -2,8 +2,6 @@
 
 TARGET_ROOTFS_DIR=./binary
 ROOTFSIMAGE=linaro-$IMAGE_VERSION-rootfs.img
-EXTRA_SIZE_MB=200
-IMAGE_SIZE_MB=$(( $(sudo du -sh -m ${TARGET_ROOTFS_DIR} | cut -f1) + ${EXTRA_SIZE_MB} ))
 
 
 echo Making rootfs!
@@ -19,8 +17,12 @@ fi
 
 sudo ./add-build-info.sh ${TARGET_ROOTFS_DIR}
 
-dd if=/dev/zero of=${ROOTFSIMAGE} bs=1M count=0 seek=${IMAGE_SIZE_MB}
+# Apparent size + maxium alignment(file_count * block_size) + maxium journal size
+IMAGE_SIZE_MB=$(( $(sudo du --apparent-size -sm ${TARGET_ROOTFS_DIR} | cut -f1) + $(sudo find ${TARGET_ROOTFS_DIR} | wc -l) * 4 / 1024 + 64 ))
 
-sudo mkfs.ext4 -d ${TARGET_ROOTFS_DIR} ${ROOTFSIMAGE}
+# Extra 10%
+IMAGE_SIZE_MB=$(( $IMAGE_SIZE_MB * 110 / 100 ))
+
+sudo mkfs.ext4 -d ${TARGET_ROOTFS_DIR} ${ROOTFSIMAGE} ${IMAGE_SIZE_MB}M
 
 echo Rootfs Image: ${ROOTFSIMAGE}
