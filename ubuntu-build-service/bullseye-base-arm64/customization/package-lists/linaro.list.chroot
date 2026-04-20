@@ -11,10 +11,12 @@ ca-certificates
 console-setup
 cpufrequtils
 debian-keyring
+dosfstools
 file
 gconf2
 gpiod
 initscripts
+initramfs-tools
 input-utils
 idlestat
 kbd
