@@ -4,6 +4,7 @@ adduser
 anacron
 apt
 apt-utils
+auto-apt-proxy
 bc
 busybox
 build-essential
