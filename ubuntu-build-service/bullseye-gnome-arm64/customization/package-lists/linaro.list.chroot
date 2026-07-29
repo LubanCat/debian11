@@ -4,6 +4,8 @@ adduser
 anacron
 apt
 apt-utils
+auto-apt-proxy
+bash-completion
 bc
 busybox
 binfmt-support
