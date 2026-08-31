@@ -168,7 +168,7 @@ if [ -e /usr/lib/aarch64-linux-gnu/ ]; then
 fi
 
 # sync system time
-hwclock --systohc
+# hwclock --systohc
 
 # read mac-address from efuse
 # if [ "$BOARDNAME" == "rk3288-miniarm" ]; then
