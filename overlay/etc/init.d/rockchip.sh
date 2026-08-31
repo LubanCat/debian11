@@ -202,7 +202,7 @@ ln -rsf /usr/lib/*/libv4l2.so /usr/lib/
 [ -e /usr/lib/aarch64-linux-gnu/ ] && ln -Tsf lib /usr/lib64
 
 # sync system time
-hwclock --systohc
+# hwclock --systohc
 
 # read mac-address from efuse
 # if [ "$BOARDNAME" == "rk3288-miniarm" ]; then
