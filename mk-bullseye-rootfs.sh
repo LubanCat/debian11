@@ -181,7 +181,7 @@ apt-get upgrade -y
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
 
 echo -e "\033[47;36m ---------- LubanCat -------- \033[0m"
-\${APT_INSTALL} toilet mpv u-boot-tools edid-decode logrotate stress fire-config lbc-test usbmount
+\${APT_INSTALL} toilet mpv u-boot-tools edid-decode logrotate stress fire-config lbc-test usbmount mmc-utils fio libaio-dev
 
 # pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple setuptools wheel
 # pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple python-periphery Adafruit-Blinka
